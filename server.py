@@ -1,8 +1,14 @@
 from html import unescape
 from pathlib import Path
+import os
 
 import requests
-from flask import Flask, jsonify, request, send_from_directory
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    send_from_directory
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -90,21 +96,41 @@ def translate():
 
     source, target = language_pairs[direction]
 
+    mymemory_email = os.environ.get(
+        "MYMEMORY_EMAIL",
+        ""
+    ).strip()
+
+    request_params = {
+        "q": text,
+        "langpair": f"{source}|{target}"
+    }
+
+    if mymemory_email:
+        request_params["de"] = mymemory_email
+
     try:
         response = requests.get(
             TRANSLATION_URL,
-
-            params={
-                "q": text,
-                "langpair": f"{source}|{target}"
-            },
-
+            params=request_params,
             headers={
-                "User-Agent": "EnglishTrainer/2.0"
+                "User-Agent": (
+                    "EnglishTrainer/2.0 "
+                    "(personal educational project)"
+                },
+                "Accept": "application/json"
             },
-
-            timeout=15
+            timeout=30
         )
+
+        if response.status_code == 429:
+            return jsonify({
+                "error": (
+                    "O serviço de tradução atingiu o limite "
+                    "temporário de requisições. Aguarde alguns "
+                    "minutos e tente novamente."
+                )
+            }), 429
 
         response.raise_for_status()
 
@@ -120,7 +146,7 @@ def translate():
 
     except requests.RequestException as error:
         app.logger.exception(
-            "Erro ao consultar o tradutor."
+            "Erro ao consultar o serviço de tradução."
         )
 
         return jsonify({
@@ -165,17 +191,12 @@ def translate():
 
 
 if __name__ == "__main__":
-    print()
-    print("======================================")
-    print("       ENGLISH TRAINER V2")
-    print("======================================")
-    print()
-    print("Acesse no navegador:")
-    print("http://127.0.0.1:5000")
-    print()
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=True
+        host="0.0.0.0",
+        port=port,
+        debug=False
     )
