@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>English Trainer V2</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header>
+            <div class="logo">
+                🇺🇸 English Trainer
+            </div>
+
+            <p>
+                Treine inglês escrevendo, ouvindo e repetindo.
+            </p>
+        </header>
+
+        <section class="settings">
+
+            <div class="field-group">
+                <label for="direction">
+                    Direção
+                </label>
+
+                <select id="direction">
+                    <option value="pt-en">
+                        🇧🇷 Português → 🇺🇸 Inglês
+                    </option>
+
+                    <option value="en-pt">
+                        🇺🇸 Inglês → 🇧🇷 Português
+                    </option>
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label for="speed">
+                    Velocidade
+                </label>
+
+                <select id="speed">
+                    <option value="0.6">
+                        🐢 Muito lenta
+                    </option>
+
+                    <option value="0.8">
+                        🐢 Lenta
+                    </option>
+
+                    <option value="1">
+                        ▶ Normal
+                    </option>
+
+                    <option value="1.2">
+                        ⚡ Rápida
+                    </option>
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label for="voice">
+                    Voz
+                </label>
+
+                <select id="voice">
+                    <option value="">
+                        Carregando...
+                    </option>
+                </select>
+            </div>
+
+        </section>
+
+        <section class="card">
+
+            <div class="card-title">
+                <span id="input-title">
+                    🇧🇷 Português
+                </span>
+            </div>
+
+            <textarea
+                id="input-text"
+                maxlength="500"
+                placeholder="Digite uma frase em português..."
+            ></textarea>
+
+            <div class="card-footer">
+
+                <span id="char-count">
+                    0 caracteres
+                </span>
+
+                <button
+                    id="clear-button"
+                    type="button"
+                >
+                    Limpar
+                </button>
+
+            </div>
+
+        </section>
+
+        <div class="translate-area">
+
+            <button
+                id="translate-button"
+                class="translate-button"
+                type="button"
+            >
+                ✨ Traduzir
+            </button>
+
+        </div>
+
+        <section class="card">
+
+            <div class="card-title">
+
+                <span id="output-title">
+                    🇺🇸 Inglês
+                </span>
+
+                <button
+                    id="copy-button"
+                    class="copy-button"
+                    type="button"
+                    title="Copiar tradução"
+                >
+                    📋
+                </button>
+
+            </div>
+
+            <div
+                id="output-text"
+                class="output-text"
+            >
+                Sua tradução aparecerá aqui.
+            </div>
+
+        </section>
+
+        <section class="card writing-card">
+
+            <div class="section-header">
+
+                <h2>
+                    ⌨️ Treino de escrita
+                </h2>
+
+                <span id="writing-status">
+                    Digite uma palavra e pressione espaço.
+                </span>
+
+            </div>
+
+            <textarea
+                id="writing-input"
+                class="writing-input"
+                rows="5"
+                placeholder="Clique aqui e digite usando o teclado..."
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+            ></textarea>
+
+            <div class="writing-options">
+
+                <label
+                    class="auto-read-label"
+                    for="auto-read"
+                >
+                    <input
+                        id="auto-read"
+                        type="checkbox"
+                        checked
+                    >
+
+                    Ler cada palavra ao pressionar espaço
+                </label>
+
+                <button
+                    id="clear-writing-button"
+                    type="button"
+                >
+                    Limpar escrita
+                </button>
+
+            </div>
+
+        </section>
+
+        <section class="card reading-card">
+
+            <div class="section-header">
+
+                <h2>
+                    🔊 Prática de pronúncia
+                </h2>
+
+                <span id="status">
+                    Pronto
+                </span>
+
+            </div>
+
+            <div
+                id="word-container"
+                class="word-container"
+            >
+                <span class="empty">
+                    Traduza uma frase para ouvir as palavras.
+                </span>
+            </div>
+
+            <div class="controls">
+
+                <button
+                    id="speak-button"
+                    class="primary"
+                    type="button"
+                >
+                    🔊 Ler frase
+                </button>
+
+                <button
+                    id="word-button"
+                    class="primary"
+                    type="button"
+                >
+                    ▶ Palavra por palavra
+                </button>
+
+                <button
+                    id="stop-button"
+                    class="secondary"
+                    type="button"
+                >
+                    ⏹ Parar
+                </button>
+
+            </div>
+
+        </section>
+
+        <footer>
+            English Trainer V2
+        </footer>
+
+    </main>
+
+    <script src="/script.js"></script>
+
+</body>
+
+</html>
