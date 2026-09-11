@@ -6,11 +6,10 @@ from flask import Flask, jsonify, request, send_from_directory
 
 
 BASE_DIR = Path(__file__).resolve().parent
-
-app = Flask(__name__)
-
 DEEPL_URL = "https://api-free.deepl.com/v2/translate"
 MAX_TEXT_LENGTH = 500
+
+app = Flask(__name__)
 
 
 @app.get("/")
@@ -77,7 +76,7 @@ def translate():
         return jsonify(
             {
                 "error": (
-                    "O texto deve possuir no máximo "
+                    f"O texto deve possuir no máximo "
                     f"{MAX_TEXT_LENGTH} caracteres."
                 )
             }
@@ -110,8 +109,8 @@ def translate():
         return jsonify(
             {
                 "error": (
-                    "A variável DEEPL_API_KEY "
-                    "não foi configurada no Render."
+                    "A variável DEEPL_API_KEY não está "
+                    "configurada no Render."
                 )
             }
         ), 500
@@ -119,7 +118,7 @@ def translate():
     languages = language_pairs[direction]
 
     request_data = {
-        "text": text,
+        "text": [text],
         "source_lang": languages["source_lang"],
         "target_lang": languages["target_lang"]
     }
@@ -128,70 +127,102 @@ def translate():
         response = requests.post(
             DEEPL_URL,
             headers={
-                "Authorization": f"DeepL-Auth-Key {api_key}",
+                "Authorization": (
+                    f"DeepL-Auth-Key {api_key}"
+                ),
                 "Content-Type": "application/json",
+                "Accept": "application/json",
                 "User-Agent": "EnglishTrainer/2.0"
             },
             json=request_data,
             timeout=30
         )
 
-        if response.status_code == 403:
-            return jsonify(
-                {
-                    "error": (
-                        "A chave da DeepL é inválida "
-                        "ou não tem permissão para usar a API."
-                    )
-                }
-            ), 403
-
-        if response.status_code == 456:
-            return jsonify(
-                {
-                    "error": (
-                        "A cota gratuita da DeepL "
-                        "foi atingida."
-                    )
-                }
-            ), 456
-
-        if response.status_code == 429:
-            return jsonify(
-                {
-                    "error": (
-                        "A DeepL limitou temporariamente "
-                        "as requisições. Tente novamente."
-                    )
-                }
-            ), 429
-
-        response.raise_for_status()
-
-        result = response.json()
-
     except requests.Timeout:
         return jsonify(
             {
                 "error": (
-                    "A DeepL demorou para responder."
+                    "A DeepL demorou para responder. "
+                    "Tente novamente."
                 )
             }
         ), 504
 
     except requests.RequestException as error:
         app.logger.exception(
-            "Erro ao consultar a DeepL."
+            "Erro de conexão com a DeepL."
         )
 
         return jsonify(
             {
                 "error": (
-                    "Erro de conexão com a DeepL: "
+                    "Não foi possível conectar à DeepL: "
                     f"{error}"
                 )
             }
         ), 502
+
+    if not response.ok:
+        try:
+            error_data = response.json()
+
+            deepl_message = str(
+                error_data.get(
+                    "message",
+                    response.text
+                )
+            )
+        except ValueError:
+            deepl_message = response.text
+
+        if response.status_code == 400:
+            message = (
+                "A DeepL recusou os dados enviados: "
+                f"{deepl_message}"
+            )
+
+        elif response.status_code == 403:
+            message = (
+                "A chave da DeepL é inválida ou não possui "
+                "permissão para usar essa API."
+            )
+
+        elif response.status_code == 404:
+            message = (
+                "O endereço da API DeepL não foi encontrado."
+            )
+
+        elif response.status_code == 429:
+            message = (
+                "A DeepL limitou temporariamente as "
+                "requisições. Aguarde e tente novamente."
+            )
+
+        elif response.status_code == 456:
+            message = (
+                "A cota de caracteres da DeepL foi atingida."
+            )
+
+        else:
+            message = (
+                f"Erro da DeepL ({response.status_code}): "
+                f"{deepl_message}"
+            )
+
+        app.logger.error(
+            "Erro DeepL %s: %s",
+            response.status_code,
+            deepl_message
+        )
+
+        return jsonify(
+            {
+                "error": message
+            }
+        ), response.status_code
+
+    try:
+        result = response.json()
 
     except ValueError:
         return jsonify(
@@ -211,20 +242,22 @@ def translate():
         return jsonify(
             {
                 "error": (
-                    "A DeepL não retornou uma tradução."
+                    "A DeepL não retornou nenhuma tradução."
                 )
             }
         ), 502
 
-    translation = translations[0].get(
-        "text",
-        ""
+    translation = str(
+        translations[0].get("text", "")
     ).strip()
 
     if not translation:
         return jsonify(
             {
-                "error": "A tradução retornada está vazia."
+                "error": (
+                    "A tradução retornada pela DeepL "
+                    "está vazia."
+                )
             }
         ), 502
 
