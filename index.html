@@ -1,267 +1,253 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>English Trainer V2</title>
+    <title>English Trainer</title>
 
     <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
-
     <main class="container">
-
-        <header>
-            <div class="logo">
-                🇺🇸 English Trainer
-            </div>
-
-            <p>
-                Treine inglês escrevendo, ouvindo e repetindo.
-            </p>
+        <header class="topo">
+            <h1>English Trainer</h1>
+            <p>Pratique inglês traduzindo, ouvindo e escrevendo.</p>
         </header>
 
-        <section class="settings">
+        <nav class="abas">
+            <button
+                class="aba ativa"
+                data-aba="tradutor"
+                type="button"
+            >
+                Tradutor
+            </button>
 
-            <div class="field-group">
+            <button
+                class="aba"
+                data-aba="pratica"
+                type="button"
+            >
+                Gerar texto
+            </button>
+        </nav>
+
+        <section
+            id="tradutor"
+            class="painel ativo"
+        >
+            <h2>Tradutor</h2>
+
+            <div class="campo-grupo">
                 <label for="direction">
-                    Direção
+                    Direção da tradução
                 </label>
 
                 <select id="direction">
                     <option value="pt-en">
-                        🇧🇷 Português → 🇺🇸 Inglês
+                        Português para inglês
                     </option>
 
                     <option value="en-pt">
-                        🇺🇸 Inglês → 🇧🇷 Português
+                        Inglês para português
                     </option>
                 </select>
             </div>
 
-            <div class="field-group">
-                <label for="speed">
-                    Velocidade
+            <div class="campo-grupo">
+                <label for="textInput">
+                    Digite o texto
                 </label>
 
-                <select id="speed">
-                    <option value="0.6">
-                        🐢 Muito lenta
-                    </option>
-
-                    <option value="0.8">
-                        🐢 Lenta
-                    </option>
-
-                    <option value="1">
-                        ▶ Normal
-                    </option>
-
-                    <option value="1.2">
-                        ⚡ Rápida
-                    </option>
-                </select>
+                <textarea
+                    id="textInput"
+                    rows="6"
+                    maxlength="500"
+                    placeholder="Digite uma frase..."
+                ></textarea>
             </div>
 
-            <div class="field-group">
-                <label for="voice">
-                    Voz
-                </label>
-
-                <select id="voice">
-                    <option value="">
-                        Carregando...
-                    </option>
-                </select>
-            </div>
-
-        </section>
-
-        <section class="card">
-
-            <div class="card-title">
-                <span id="input-title">
-                    🇧🇷 Português
-                </span>
-            </div>
-
-            <textarea
-                id="input-text"
-                maxlength="500"
-                placeholder="Digite uma frase em português..."
-            ></textarea>
-
-            <div class="card-footer">
-
-                <span id="char-count">
-                    0 caracteres
-                </span>
+            <div class="botoes">
+                <button
+                    id="translateButton"
+                    class="botao principal"
+                    type="button"
+                >
+                    Traduzir
+                </button>
 
                 <button
-                    id="clear-button"
+                    id="clearTranslationButton"
+                    class="botao secundario"
                     type="button"
                 >
                     Limpar
                 </button>
-
             </div>
 
+            <div
+                id="translationStatus"
+                class="status"
+                aria-live="polite"
+            ></div>
+
+            <div class="resultado">
+                <h3>Tradução</h3>
+
+                <div
+                    id="translationResult"
+                    class="resultado-texto"
+                >
+                    A tradução aparecerá aqui.
+                </div>
+            </div>
         </section>
 
-        <div class="translate-area">
+        <section
+            id="pratica"
+            class="painel"
+        >
+            <h2>Prática de escuta e escrita</h2>
+
+            <div class="opcoes-pratica">
+                <div class="campo-grupo">
+                    <label for="levelSelect">
+                        Nível
+                    </label>
+
+                    <select id="levelSelect">
+                        <option value="beginner">
+                            Iniciante
+                        </option>
+
+                        <option value="intermediate">
+                            Intermediário
+                        </option>
+
+                        <option value="advanced">
+                            Avançado
+                        </option>
+                    </select>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="topicSelect">
+                        Tema
+                    </label>
+
+                    <select id="topicSelect">
+                        <option value="routine">
+                            Rotina
+                        </option>
+
+                        <option value="travel">
+                            Viagem
+                        </option>
+
+                        <option value="restaurant">
+                            Restaurante
+                        </option>
+
+                        <option value="work">
+                            Trabalho
+                        </option>
+
+                        <option value="free-time">
+                            Tempo livre
+                        </option>
+                    </select>
+                </div>
+            </div>
 
             <button
-                id="translate-button"
-                class="translate-button"
+                id="generateButton"
+                class="botao principal largura-total"
                 type="button"
             >
-                ✨ Traduzir
+                Gerar novo texto
             </button>
 
-        </div>
+            <div class="resultado texto-gerado-box">
+                <h3>Texto para ouvir</h3>
 
-        <section class="card">
-
-            <div class="card-title">
-
-                <span id="output-title">
-                    🇺🇸 Inglês
-                </span>
-
-                <button
-                    id="copy-button"
-                    class="copy-button"
-                    type="button"
-                    title="Copiar tradução"
+                <div
+                    id="generatedText"
+                    class="texto-gerado"
                 >
-                    📋
+                    Clique em “Gerar novo texto” para começar.
+                </div>
+            </div>
+
+            <div class="controles-voz">
+                <button
+                    id="speakButton"
+                    class="botao principal"
+                    type="button"
+                >
+                    ▶ Ouvir
                 </button>
 
-            </div>
-
-            <div
-                id="output-text"
-                class="output-text"
-            >
-                Sua tradução aparecerá aqui.
-            </div>
-
-        </section>
-
-        <section class="card writing-card">
-
-            <div class="section-header">
-
-                <h2>
-                    ⌨️ Treino de escrita
-                </h2>
-
-                <span id="writing-status">
-                    Digite uma palavra e pressione espaço.
-                </span>
-
-            </div>
-
-            <textarea
-                id="writing-input"
-                class="writing-input"
-                rows="5"
-                placeholder="Clique aqui e digite usando o teclado..."
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-            ></textarea>
-
-            <div class="writing-options">
-
-                <label
-                    class="auto-read-label"
-                    for="auto-read"
+                <button
+                    id="pauseButton"
+                    class="botao secundario"
+                    type="button"
                 >
-                    <input
-                        id="auto-read"
-                        type="checkbox"
-                        checked
-                    >
+                    ⏸ Pausar
+                </button>
 
-                    Ler cada palavra ao pressionar espaço
+                <button
+                    id="stopButton"
+                    class="botao secundario"
+                    type="button"
+                >
+                    ■ Parar
+                </button>
+            </div>
+
+            <div class="campo-grupo">
+                <label for="typingInput">
+                    Digite o que você está ouvindo
                 </label>
 
-                <button
-                    id="clear-writing-button"
-                    type="button"
-                >
-                    Limpar escrita
-                </button>
-
+                <textarea
+                    id="typingInput"
+                    rows="6"
+                    placeholder="Digite o texto em inglês enquanto escuta..."
+                ></textarea>
             </div>
 
-        </section>
+            <div class="botoes">
+                <button
+                    id="checkButton"
+                    class="botao principal"
+                    type="button"
+                >
+                    Verificar resposta
+                </button>
 
-        <section class="card reading-card">
-
-            <div class="section-header">
-
-                <h2>
-                    🔊 Prática de pronúncia
-                </h2>
-
-                <span id="status">
-                    Pronto
-                </span>
-
+                <button
+                    id="clearPracticeButton"
+                    class="botao secundario"
+                    type="button"
+                >
+                    Limpar
+                </button>
             </div>
 
             <div
-                id="word-container"
-                class="word-container"
-            >
-                <span class="empty">
-                    Traduza uma frase para ouvir as palavras.
-                </span>
-            </div>
+                id="practiceStatus"
+                class="status"
+                aria-live="polite"
+            ></div>
 
-            <div class="controls">
-
-                <button
-                    id="speak-button"
-                    class="primary"
-                    type="button"
-                >
-                    🔊 Ler frase
-                </button>
-
-                <button
-                    id="word-button"
-                    class="primary"
-                    type="button"
-                >
-                    ▶ Palavra por palavra
-                </button>
-
-                <button
-                    id="stop-button"
-                    class="secondary"
-                    type="button"
-                >
-                    ⏹ Parar
-                </button>
-
-            </div>
-
+            <div
+                id="checkResult"
+                class="resultado resultado-verificacao"
+            ></div>
         </section>
-
-        <footer>
-            English Trainer V2
-        </footer>
-
     </main>
 
     <script src="/script.js"></script>
-
 </body>
-
 </html>
