@@ -1,5 +1,4 @@
 import os
-from html import unescape
 from pathlib import Path
 
 import requests
@@ -7,25 +6,35 @@ from flask import Flask, jsonify, request, send_from_directory
 
 
 BASE_DIR = Path(__file__).resolve().parent
-TRANSLATION_URL = "https://api.mymemory.translated.net/get"
-MAX_TEXT_LENGTH = 500
 
 app = Flask(__name__)
+
+DEEPL_URL = "https://api-free.deepl.com/v2/translate"
+MAX_TEXT_LENGTH = 500
 
 
 @app.get("/")
 def home():
-    return send_from_directory(BASE_DIR, "index.html")
+    return send_from_directory(
+        str(BASE_DIR),
+        "index.html"
+    )
 
 
 @app.get("/style.css")
 def style():
-    return send_from_directory(BASE_DIR, "style.css")
+    return send_from_directory(
+        str(BASE_DIR),
+        "style.css"
+    )
 
 
 @app.get("/script.js")
 def script():
-    return send_from_directory(BASE_DIR, "script.js")
+    return send_from_directory(
+        str(BASE_DIR),
+        "script.js"
+    )
 
 
 @app.get("/health")
@@ -33,7 +42,7 @@ def health():
     return jsonify(
         {
             "status": "ok",
-            "application": "English Trainer V2",
+            "application": "English Trainer V2"
         }
     )
 
@@ -49,8 +58,13 @@ def translate():
             }
         ), 400
 
-    text = str(data.get("text", "")).strip()
-    direction = str(data.get("direction", "pt-en")).strip()
+    text = str(
+        data.get("text", "")
+    ).strip()
+
+    direction = str(
+        data.get("direction", "pt-en")
+    ).strip()
 
     if not text:
         return jsonify(
@@ -63,15 +77,21 @@ def translate():
         return jsonify(
             {
                 "error": (
-                    f"O texto deve possuir no máximo "
+                    "O texto deve possuir no máximo "
                     f"{MAX_TEXT_LENGTH} caracteres."
                 )
             }
         ), 400
 
     language_pairs = {
-        "pt-en": ("pt", "en"),
-        "en-pt": ("en", "pt"),
+        "pt-en": {
+            "source_lang": "PT",
+            "target_lang": "EN-US"
+        },
+        "en-pt": {
+            "source_lang": "EN",
+            "target_lang": "PT-BR"
+        }
     }
 
     if direction not in language_pairs:
@@ -81,68 +101,93 @@ def translate():
             }
         ), 400
 
-    source, target = language_pairs[direction]
-
-    mymemory_email = os.environ.get(
-        "MYMEMORY_EMAIL",
-        "",
+    api_key = os.environ.get(
+        "DEEPL_API_KEY",
+        ""
     ).strip()
 
-    request_params = {
-        "q": text,
-        "langpair": f"{source}|{target}",
+    if not api_key:
+        return jsonify(
+            {
+                "error": (
+                    "A variável DEEPL_API_KEY "
+                    "não foi configurada no Render."
+                )
+            }
+        ), 500
+
+    languages = language_pairs[direction]
+
+    request_data = {
+        "text": text,
+        "source_lang": languages["source_lang"],
+        "target_lang": languages["target_lang"]
     }
 
-    if mymemory_email:
-        request_params["de"] = mymemory_email
-
     try:
-        response = requests.get(
-            TRANSLATION_URL,
-            params=request_params,
+        response = requests.post(
+            DEEPL_URL,
             headers={
-                "User-Agent": (
-                    "EnglishTrainer/2.0 "
-                    "(personal educational project)"
-                ),
-                "Accept": "application/json",
+                "Authorization": f"DeepL-Auth-Key {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "EnglishTrainer/2.0"
             },
-            timeout=30,
+            json=request_data,
+            timeout=30
         )
+
+        if response.status_code == 403:
+            return jsonify(
+                {
+                    "error": (
+                        "A chave da DeepL é inválida "
+                        "ou não tem permissão para usar a API."
+                    )
+                }
+            ), 403
+
+        if response.status_code == 456:
+            return jsonify(
+                {
+                    "error": (
+                        "A cota gratuita da DeepL "
+                        "foi atingida."
+                    )
+                }
+            ), 456
 
         if response.status_code == 429:
             return jsonify(
                 {
                     "error": (
-                        "O serviço de tradução atingiu o limite "
-                        "temporário de requisições. Aguarde alguns "
-                        "minutos e tente novamente."
+                        "A DeepL limitou temporariamente "
+                        "as requisições. Tente novamente."
                     )
                 }
             ), 429
 
         response.raise_for_status()
+
         result = response.json()
 
     except requests.Timeout:
         return jsonify(
             {
                 "error": (
-                    "O serviço de tradução demorou "
-                    "para responder."
+                    "A DeepL demorou para responder."
                 )
             }
         ), 504
 
     except requests.RequestException as error:
         app.logger.exception(
-            "Erro ao consultar o serviço de tradução."
+            "Erro ao consultar a DeepL."
         )
 
         return jsonify(
             {
                 "error": (
-                    "Erro de conexão com o tradutor: "
+                    "Erro de conexão com a DeepL: "
                     f"{error}"
                 )
             }
@@ -152,27 +197,36 @@ def translate():
         return jsonify(
             {
                 "error": (
-                    "O tradutor retornou uma resposta inválida."
+                    "A DeepL retornou uma resposta inválida."
                 )
             }
         ), 502
 
-    response_data = result.get("responseData") or {}
-    translation = response_data.get("translatedText")
+    translations = result.get(
+        "translations",
+        []
+    )
 
-    if not translation:
-        details = result.get(
-            "responseDetails",
-            "A tradução não foi encontrada.",
-        )
-
+    if not translations:
         return jsonify(
             {
-                "error": str(details)
+                "error": (
+                    "A DeepL não retornou uma tradução."
+                )
             }
         ), 502
 
-    translation = unescape(str(translation)).strip()
+    translation = translations[0].get(
+        "text",
+        ""
+    ).strip()
+
+    if not translation:
+        return jsonify(
+            {
+                "error": "A tradução retornada está vazia."
+            }
+        ), 502
 
     return jsonify(
         {
@@ -182,10 +236,12 @@ def translate():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=False,
+        debug=False
     )
